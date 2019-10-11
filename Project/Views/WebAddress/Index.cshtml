@@ -1,0 +1,28 @@
+@model IEnumerable<TestProject.Models.WebAddress>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Url)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Url)
+            </td>
+            <td>
+                <a asp-action="Index" asp-controller="Page" asp-route-id="@item.UId">Details</a> 
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,0 +1,9 @@
+@model WebAddress
+
+@if(ViewBag.Messages != null)
+{
+    @foreach (var item in ViewBag.Messages)
+    {
+        <li>@item</li>
+    }
+}

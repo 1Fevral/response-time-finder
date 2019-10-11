@@ -1,0 +1,44 @@
+﻿@model WebAddress
+
+<div class="container">
+    <form asp-controller="Home" asp-action="Index" data-ajax="true" data-ajax-method="POST" data-ajax-mode="replace" data-ajax-update="#results" data-ajax-loading="#loader" data-ajax-success="onSuccess">
+        <label asp-for="Url"></label> <br/>
+        <input asp-for="Url" class="form-control" type="text" autocomplete="off" id="url"/><br>
+        <span class="alert alert-danger" role="alert" asp-validation-for="Url"></span>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <br><br>    
+    <div class="container">
+        <div id="loader" class="lds-facebook" style="display:none"><div></div><div></div><div></div></div>
+        <div class="overflow-auto p-3 mb-3 mb-md-0 mr-md-3 bg-light" style="width: 100%; min-height: 0; max-height: 300px;">
+            <ul id="results"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    var i=0;
+    function onSuccess() {
+        var data = {
+            url: $("#url").val(),
+            startFrom: i,
+            numToTake: 10
+        } 
+
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetPages",
+            beforeSend: function() {$('#loader').show();},
+            data: data,
+            success: function(res) { 
+                $("#results").prepend(res);
+                if(res != "Success! Your result saved to history.")
+                {
+                    i+=10;
+                    onSuccess();
+                }
+                else { $('#loader').hide();}
+            }
+        })
+    }
+</script>
