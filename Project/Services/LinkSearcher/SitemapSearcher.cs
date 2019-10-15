@@ -19,28 +19,33 @@ namespace TestProject.Services
 
         public void FindIn(string rightPart) 
         {
-            WebClient client = new WebClient();
-            Stream stream = client.OpenRead(this.wa.Url + rightPart);
-            StreamReader reader = new StreamReader(stream);
-            
-            if(reader.EndOfStream) {
-                return;
-            }
-            
-            string line;
-            this.wa.Sitemaps = new List<Sitemap>();
-
-            while(!reader.EndOfStream)
+            try
             {
-                line = reader.ReadLine();
-                if(line.Contains("Sitemap")) 
-                {
-                    this.wa.Sitemaps.Add(new Sitemap{
-                        SitemapLink = line.Split(":",2)[1].Trim().Substring(wa.Url.Length)
-                    });
+                WebClient client = new WebClient();
+                Stream stream = client.OpenRead(this.wa.Url + rightPart);
+                StreamReader reader = new StreamReader(stream);
+                
+                if(reader.EndOfStream) {
+                    return;
                 }
+                
+                string line;
+                this.wa.Sitemaps = new List<Sitemap>();
+
+                while(!reader.EndOfStream)
+                {
+                    line = reader.ReadLine();
+                    if(line.Contains("Sitemap")) 
+                    {
+                        string link = line.Split(":",2)[1].Trim();
+                        this.wa.Sitemaps.Add(new Sitemap{
+                            SitemapLink = link.Contains(wa.Url) ? link.Substring(wa.Url.Length) : link.Substring(wa.Url.Length - 1)
+                        });
+                    }
+                }
+                if(this.wa.Sitemaps.Count > 0) wa.isSuccess = true;
             }
-            if(this.wa.Sitemaps.Count > 0 ) wa.isSuccess = true;
+            catch {}
         }
     }
 }

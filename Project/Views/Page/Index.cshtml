@@ -1,16 +1,14 @@
 @model IEnumerable<TestProject.Models.Page>
 
-@{
-    ViewData["Title"] = "Index";
-}
-
 <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
 <p style="text-align:right">Max: @ViewBag.max | Min: @ViewBag.min</p>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
 <table class="table">
     <thead>
         <tr>
-            <th>
+            <th id="uid" data-id-wa="@ViewBag.id">
                 @Html.DisplayNameFor(model => model.Sitemap.WebAddress.Url)
             </th>
             <th>
@@ -19,22 +17,9 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td id="#uid" data-id-wa="@item.Sitemap.UId" >
-                @Html.DisplayFor(modelItem => item.Sitemap.WebAddress.Url)@Html.DisplayFor(modelItem => item.PageLink)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ResponseTime)
-            </td>
-            
-        </tr>
-}
+    
     </tbody>
 </table>
-
-<script src="https://code.highcharts.com/highcharts.js"></script>
-
 
 
 <script src="/lib/jquery/dist/jquery.js"></script>
@@ -74,7 +59,7 @@
                     tooltip: {
                         headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
                         pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                            '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                            '<td style="padding:0"><b>{point.y:.1f} ms</b></td></tr>',
                         footerFormat: '</table>',
                         shared: true,
                         useHTML: true
@@ -86,11 +71,35 @@
                         }
                     },
                     series: [{
-                        name: "URL",
+                        name: "Speed",
                         data: values
                     }]
                 });
 
             }
         })
+        var toTake = 400;
+        var pagesData = {
+            startFrom: 0,
+            numToTake: toTake
+        }
+
+        function onSuccess()
+        {
+            
+            $.ajax({
+                type: "GET",
+                url: "/Page/GetPagesWithAjax/" + $("#uid").data("id-wa"),
+                data: pagesData,
+                success: function(res) { 
+                    if(res != "Finish")
+                    {
+                        $("tbody").append(res);
+                        pagesData.startFrom += toTake;
+                        onSuccess();
+                    }
+                }
+            })
+        }
+        onSuccess();
 		</script>

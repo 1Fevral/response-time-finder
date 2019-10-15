@@ -1,7 +1,7 @@
 ﻿@model WebAddress
 
 <div class="container">
-    <form asp-controller="Home" asp-action="Index" data-ajax="true" data-ajax-method="POST" data-ajax-mode="replace" data-ajax-update="#results" data-ajax-loading="#loader" data-ajax-success="onSuccess">
+    <form asp-controller="Home" asp-action="Index" data-ajax="true" data-ajax-method="POST" data-ajax-loading="#loader" data-ajax-success="onSuccess">
         <label asp-for="Url"></label> <br/>
         <input asp-for="Url" class="form-control" type="text" autocomplete="off" id="url"/><br>
         <span class="alert alert-danger" role="alert" asp-validation-for="Url"></span>
@@ -18,13 +18,28 @@
 
 <script>
     var i=0;
-    function onSuccess() {
-        var data = {
-            url: $("#url").val(),
-            startFrom: i,
-            numToTake: 10
+    function onSuccess(ajaxResponse) {
+        if(ajaxResponse == "Error") 
+        {
+            $("#results").html(ajaxResponse);
+            return;
         } 
+        var response = JSON.parse(ajaxResponse);
+        $("#results").html(response.htmlResult);
 
+        if(response.isSuccess)
+        {
+            var data = {
+                url: response.url,
+                startFrom: i,
+                numToTake: 10
+            } 
+            getPagesSpeed(data);
+
+        }
+    }
+    function getPagesSpeed(data)
+    {
         $.ajax({
             type: "GET",
             url: "/Home/GetPages",
@@ -34,8 +49,8 @@
                 $("#results").prepend(res);
                 if(res != "Success! Your result saved to history.")
                 {
-                    i+=10;
-                    onSuccess();
+                    data.startFrom +=10;
+                    getPagesSpeed(data);
                 }
                 else { $('#loader').hide();}
             }

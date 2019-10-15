@@ -10,6 +10,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Url)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.isSuccess)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -20,7 +23,13 @@
                 @Html.DisplayFor(modelItem => item.Url)
             </td>
             <td>
-                <a asp-action="Index" asp-controller="Page" asp-route-id="@item.UId">Details</a> 
+                @Html.DisplayFor(modelItem => item.isSuccess)
+            </td>
+            <td>
+                @if(item.isSuccess)
+                {
+                    <a asp-action="Index" asp-controller="Page" asp-route-id="@item.UId">Details</a>
+                } 
             </td>
         </tr>
 }

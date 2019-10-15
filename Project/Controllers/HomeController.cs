@@ -9,6 +9,7 @@ using TestProject.Data;
 using System;
 using System.Net;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace TestProject.Controllers
 {
@@ -30,76 +31,93 @@ namespace TestProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(WebAddress wa)
         {
-            if(!ModelState.IsValid ) 
+            try
             {
-                return Content("<li>The URL field is not a valid fully-qualified http, https, or ftp URL.</li>");
+                AjaxResponse ajaxResponse = new AjaxResponse();
+                ajaxResponse.url = wa.Url;
+                
+                if(!ModelState.IsValid ) 
+                {
+                    ajaxResponse.htmlResult = "<li>The URL field is not a valid fully-qualified http, https, or ftp URL.</li>";
+                    return Content(JsonConvert.SerializeObject(ajaxResponse));
+                }
+                
+                wa.Url = UrlFormater.Formate(wa.Url);
+
+                if(db.WebAddresses.Where(w => w.Url == wa.Url).Any())
+                {
+                    ajaxResponse.htmlResult = "<li>This url has already checked.</li>";
+                    return Content(JsonConvert.SerializeObject(ajaxResponse));
+                }
+
+                ViewBag.Messages = new List<string>();
+
+                SitemapSearcher searcher = new SitemapSearcher(wa);
+                searcher.FindIn("robots.txt");
+                
+                if(!searcher.webAddress.isSuccess) 
+                {
+                    db.WebAddresses.Add(searcher.webAddress);
+                    await db.SaveChangesAsync();
+                    ajaxResponse.htmlResult = "<li>No sitemap found</li>";
+                }
+                else 
+                {
+                    LinkParser ls = new LinkParser(searcher.webAddress);
+                    db.WebAddresses.Add(await ls.GetLinksAsync(wa));
+                    await db.SaveChangesAsync();
+                    
+                    ajaxResponse.isSuccess = true;
+                    ajaxResponse.htmlResult += "<li>Starting to checking links...</li>";
+                    ajaxResponse.htmlResult += "<li>Discovered: " + db.Pages.Where(p => p.Sitemap.UId == wa.UId).Count() + " pages</li>";
+                    ajaxResponse.htmlResult += "<li>Discovered: " + wa.Sitemaps.Count + " sitemaps</li>";
+                }
+                return Content(JsonConvert.SerializeObject(ajaxResponse));
             }
-            
-            wa.Url = UrlFormater.Formate(wa.Url);
-
-            if(db.WebAddresses.Where(w => w.Url == wa.Url).Any())
-            {
-                return Content("<li>Starting to rechecking links...</li><li>This url has already checked.</li>");
-            }
-
-            ViewBag.Messages = new List<string>();
-
-            SitemapSearcher searcher = new SitemapSearcher(wa);
-            searcher.FindIn("robots.txt");
-            
-            if(!wa.isSuccess) {
-                return Content("<li>No sitemap found</li>");
-            }
-
-            LinkParser ls = new LinkParser(searcher.webAddress);
-            
-            db.WebAddresses.Add(await ls.GetLinksAsync(wa));
-            await db.SaveChangesAsync();
-            
-            ViewBag.Messages.Add("Starting to checking links...");
-            ViewBag.Messages.Add("Discovered: " + db.Pages.Where(p => p.Sitemap.UId == wa.UId).Count() + " pages");
-            ViewBag.Messages.Add("Discovered: " + wa.Sitemaps.Count + " sitemaps");
-            
-            return PartialView("Result", wa);
+            catch { return Content("Error"); }
         } 
-
-        public IActionResult Result()
-        {
-            return View();
-        }
 
         public async Task<IActionResult> GetPages(string url,int startFrom, int numToTake)
         {
-            url = UrlFormater.Formate(url);
-            ViewBag.url = url;
-            var webAddress = db.WebAddresses.Where(wa => wa.Url == url).First();
-            System.Diagnostics.Stopwatch timer = new Stopwatch();
-            HttpWebRequest request;
-            HttpWebResponse response;
-
-            var pages = db.Pages.Where(p => p.Sitemap.UId == webAddress.UId).OrderBy(p => p.PId);
-            if(pages.Count() > startFrom) 
+            try
             {
-                var partOfPages = pages.Skip(startFrom).Take(numToTake);
-                foreach(var page in partOfPages)
+                url = UrlFormater.Formate(url);
+                ViewBag.url = url;
+                var webAddress = db.WebAddresses.Where(wa => wa.Url == url).First();
+                System.Diagnostics.Stopwatch timer = new Stopwatch();
+                HttpWebRequest request;
+                HttpWebResponse response;
+
+                var pages = db.Pages.Where(p => p.Sitemap.UId == webAddress.UId)
+                                    .OrderBy(p => p.PId);
+                if(pages.Count() >= startFrom) 
                 {
-                    request = (HttpWebRequest)WebRequest.Create(url + page.PageLink);
+                    var partOfPages = pages.Skip(startFrom).Take(numToTake);
+                    foreach(var page in partOfPages)
+                    {
+                        page.ResponseTime = 0;
+                        while(page.ResponseTime < 50)
+                        {
+                            request = (HttpWebRequest)WebRequest.Create(url + page.PageLink);
 
-                    timer.Start();
+                            timer.Start();
 
-                    response = (HttpWebResponse)request.GetResponse();
-                    response.Close ();
+                            response = (HttpWebResponse)request.GetResponse();
+                            response.Close ();
 
-                    timer.Stop();
-                    
-                    page.ResponseTime = timer.Elapsed.Milliseconds;
-                    timer.Reset();
+                            timer.Stop();
+
+                            page.ResponseTime = timer.Elapsed.Milliseconds;
+                            timer.Reset();
+                        }
+                    }
+                    db.Pages.UpdateRange(partOfPages); 
+                    await db.SaveChangesAsync();
+                    return PartialView("GetPages", partOfPages.ToList());
                 }
-                db.Pages.UpdateRange(partOfPages); 
-                await db.SaveChangesAsync();
-                return PartialView("GetPages", partOfPages.ToList());
+                else return Content("Success! Your result saved to history.");
             }
-            else return Content("Success! Your result saved to history.");
+            catch { return Content("Server Error");}
         }
     
     }

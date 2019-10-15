@@ -1,0 +1,14 @@
+@model IEnumerable<TestProject.Models.Page>
+
+
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Sitemap.WebAddress.Url)@Html.DisplayFor(modelItem => item.PageLink)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ResponseTime)
+            </td>
+            
+        </tr>
+}
