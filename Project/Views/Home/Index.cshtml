@@ -19,38 +19,33 @@
 <script>
     var i=0;
     function onSuccess(ajaxResponse) {
-        if(ajaxResponse == "Error") 
-        {
-            $("#results").html(ajaxResponse);
-            return;
-        } 
+ 
         var response = JSON.parse(ajaxResponse);
         $("#results").html(response.htmlResult);
 
         if(response.isSuccess)
         {
             var data = {
-                url: response.url,
-                startFrom: i,
-                numToTake: 10
+                url: response.url
             } 
-            getPagesSpeed(data);
+            getPagesAndSpeed(data);
 
         }
     }
-    function getPagesSpeed(data)
+    function getPagesAndSpeed(data)
     {
         $.ajax({
             type: "GET",
-            url: "/Home/GetPages",
+            url: "/Home/AnalyzePage",
             beforeSend: function() {$('#loader').show();},
             data: data,
-            success: function(res) { 
-                $("#results").prepend(res);
-                if(res != "Success! Your result saved to history.")
+            success: function(ajaxResponse) { 
+                var response = JSON.parse(ajaxResponse);
+                $("#results").prepend(response.htmlResult);
+
+                if(response.isSuccess)
                 {
-                    data.startFrom +=10;
-                    getPagesSpeed(data);
+                    getPagesAndSpeed(data);
                 }
                 else { $('#loader').hide();}
             }

@@ -27,7 +27,9 @@ namespace TestProject.Services
                 var sitemap = wa.Sitemaps.ElementAt(i);
                 var document = await context.OpenAsync(wa.Url + sitemap.SitemapLink);
 
-                var links = document.QuerySelectorAll(" * :not(:has(*))").Where(v => v.TextContent.Contains(wa.Url)).Select(v => v.TextContent).ToList();
+                var links = document.QuerySelectorAll(" * :not(:has(*))")
+                                    .Where(v => v.TextContent.Contains( UrlFormater.GetLeftPartWOHttp(wa.Url)) )
+                                    .Select(v => v.TextContent).ToList();
 
                 if(!links.Any()) continue;
 
@@ -37,14 +39,14 @@ namespace TestProject.Services
                     {
                         wa.Sitemaps.Add(new Sitemap()
                         { 
-                            SitemapLink = item.Substring(wa.Url.Length)
+                            SitemapLink = UrlFormater.GetRightPart(item)
                         });
                     } 
                     wa.Sitemaps.Remove(sitemap);
                 }
                 else 
                 {
-                    sitemap.Pages = Page.toPage(links, wa.Url.Length);
+                    sitemap.Pages = Page.toPage(links);
                 }
             }
             return wa;

@@ -39,7 +39,7 @@ namespace TestProject.Services
                     {
                         string link = line.Split(":",2)[1].Trim();
                         this.wa.Sitemaps.Add(new Sitemap{
-                            SitemapLink = link.Contains(wa.Url) ? link.Substring(wa.Url.Length) : link.Substring(wa.Url.Length - 1)
+                            SitemapLink = UrlFormater.GetRightPart(link)
                         });
                     }
                 }

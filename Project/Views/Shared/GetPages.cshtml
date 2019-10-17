@@ -1,9 +1,0 @@
-@model List<Page>
-
-@if(Model != null)
-{
-    @foreach (var item in Model)
-    {
-        <li>@ViewBag.url@item.PageLink - @item.ResponseTime</li>
-    }
-}

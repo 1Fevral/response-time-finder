@@ -2,8 +2,6 @@
 
 <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
-<p style="text-align:right">Max: @ViewBag.max | Min: @ViewBag.min</p>
-
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <table class="table">
     <thead>
@@ -12,7 +10,10 @@
                 @Html.DisplayNameFor(model => model.Sitemap.WebAddress.Url)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ResponseTime)
+                @Html.DisplayNameFor(model => model.MinResponseTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxResponseTime)
             </th>
         </tr>
     </thead>
@@ -42,7 +43,7 @@
                         type: 'column'
                     },
                     title: {
-                        text: 'Response Time'
+                        text: 'Max Response Time'
                     },
                     xAxis: {  
                         categories:links,

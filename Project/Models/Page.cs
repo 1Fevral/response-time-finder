@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TestProject.Services;
 
 namespace TestProject.Models
 {
@@ -15,18 +16,21 @@ namespace TestProject.Models
         [StringLength(2048)]
         public string PageLink {get;set;}
         
-        [Display(Name = "Response Time")]
-        public double? ResponseTime {get;set;}
+        [Display(Name = "Min RT")]
+        public double? MinResponseTime {get;set;}
+
+        [Display(Name = "Max RT")]        
+        public double? MaxResponseTime {get;set;}        
 
         [Display(Name = "Sitemap")]
         public int SId {get;set;}
 
-        public static List<Page> toPage(List<string> list,int lenght)
-        {
+        public static List<Page> toPage(IEnumerable<string> list)
+        { 
             List<Page> sitemaps = new List<Page>();  
             foreach(var item in list)
             {
-                sitemaps.Add(new Page() { PageLink = item.Substring(lenght) });
+                sitemaps.Add(new Page() { PageLink = TestProject.Services.UrlFormater.GetRightPart(item) });
             }
             return sitemaps;
         }

@@ -21,25 +21,23 @@ namespace TestProject.Controllers
         }
 
         // GET: Page
-        public async Task<IActionResult> Index(int? id)
+        public IActionResult Index(int? id)
         {
             var pages = db.Pages.Where(p => p.Sitemap.UId == id)
-                                .OrderByDescending(p => p.ResponseTime);
-            ViewBag.min = await pages.MinAsync(p=> p.ResponseTime);
-            ViewBag.max = await pages.MaxAsync(p=>p.ResponseTime);
+                                .OrderByDescending(p => p.MaxResponseTime);
             ViewBag.id = id;
             return View();
         }
         public string GetChartParams(int id)
         {
-            var pages =  db.Pages.Where(p => p.ResponseTime != null && p.Sitemap.UId == id).Take(350).ToList();
+            var pages =  db.Pages.Where(p => p.MaxResponseTime != null && p.Sitemap.UId == id).Take(350).ToList();
             var res = new ChartParams();
             res.links = new List<string>();
             res.values = new List<double?>();
             foreach(var page in pages)
             {
                 res.links.Add(page.PageLink);
-                res.values.Add(page.ResponseTime);
+                res.values.Add(page.MaxResponseTime);
             }
             return JsonConvert.SerializeObject(res);
         }
@@ -54,10 +52,11 @@ namespace TestProject.Controllers
             else 
             {
                 var filteredPages = pages.Where(p => p.Sitemap.UId == id)
-                                    .OrderByDescending(p => p.ResponseTime);
-                if(filteredPages.Count() >= startFrom) return PartialView("__PagesPartial", await filteredPages.Skip(startFrom)
-                                                                                                                .Take(numToTake)
-                                                                                                                .ToListAsync());
+                                    .OrderByDescending(p => p.MaxResponseTime.HasValue).ThenByDescending(p => p.MaxResponseTime);
+                if(filteredPages.Count() >= startFrom) 
+                return PartialView("__PagesPartial", await filteredPages.Skip(startFrom)
+                                                                        .Take(numToTake)
+                                                                        .ToListAsync());
                 else return Content("Finish");
             }
         }

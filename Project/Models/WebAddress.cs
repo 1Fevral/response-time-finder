@@ -15,7 +15,7 @@ namespace TestProject.Models
         [Display(Name = "URL")]
         public string Url {get;set;}
 
-        [Display(Name = "IsSuccess")]
+        [Display(Name = "Sitemap")]
         public bool isSuccess {get;set;} = false;
 
         public virtual ICollection<Sitemap> Sitemaps {get;set;}

@@ -26,10 +26,8 @@
                 @Html.DisplayFor(modelItem => item.isSuccess)
             </td>
             <td>
-                @if(item.isSuccess)
-                {
                     <a asp-action="Index" asp-controller="Page" asp-route-id="@item.UId">Details</a>
-                } 
+                 
             </td>
         </tr>
 }

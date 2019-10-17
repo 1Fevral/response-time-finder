@@ -7,7 +7,10 @@
                 @Html.DisplayFor(modelItem => item.Sitemap.WebAddress.Url)@Html.DisplayFor(modelItem => item.PageLink)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ResponseTime)
+                @Html.DisplayFor(modelItem => item.MinResponseTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MaxResponseTime)
             </td>
             
         </tr>
